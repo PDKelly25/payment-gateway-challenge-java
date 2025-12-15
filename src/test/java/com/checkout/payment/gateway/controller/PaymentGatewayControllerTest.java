@@ -4,6 +4,7 @@ package com.checkout.payment.gateway.controller;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.checkout.payment.gateway.enums.ISOCurrencyCode;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.model.PostPaymentResponse;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
@@ -30,11 +31,11 @@ class PaymentGatewayControllerTest {
     PostPaymentResponse payment = new PostPaymentResponse();
     payment.setId(UUID.randomUUID());
     payment.setAmount(10);
-    payment.setCurrency("USD");
+    payment.setCurrency(ISOCurrencyCode.USD);
     payment.setStatus(PaymentStatus.AUTHORIZED);
     payment.setExpiryMonth(12);
     payment.setExpiryYear(2024);
-    payment.setCardNumberLastFour(4321);
+    payment.setCardNumberLastFour("4321");
 
     paymentsRepository.add(payment);
 
