@@ -7,7 +7,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -19,8 +18,7 @@ public class BankPaymentClient {
     this.restTemplate = restTemplate;
   }
 
-  public BankPostPaymentResponse processPayment(PostPaymentRequest request)
-      throws HttpServerErrorException {
+  public BankPostPaymentResponse processPayment(PostPaymentRequest request){
     String paymentsEndpoint = "/payments";
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
