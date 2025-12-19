@@ -1,5 +1,6 @@
 package com.checkout.payment.gateway.integration;
 
+import com.checkout.payment.gateway.enums.ISOCurrencyCode;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.model.PostPaymentResponse;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
@@ -23,14 +24,17 @@ class PaymentsRepositoryIntegrationTest {
     PostPaymentResponse payment = new PostPaymentResponse();
     UUID id = UUID.randomUUID();
     payment.setId(id);
-    payment.setAmount(100);
     payment.setStatus(PaymentStatus.AUTHORIZED);
+    payment.setExpiryMonth(1);
+    payment.setExpiryYear(2030);
+    payment.setCurrency(ISOCurrencyCode.EUR);
+    payment.setAmount(10000);
 
     paymentsRepository.add(payment);
 
     Optional<PostPaymentResponse> retrieved = paymentsRepository.get(id);
     assertTrue(retrieved.isPresent());
-    assertEquals(100, retrieved.get().getAmount());
+    assertEquals(10000, retrieved.get().getAmount());
     assertEquals(PaymentStatus.AUTHORIZED, retrieved.get().getStatus());
   }
 

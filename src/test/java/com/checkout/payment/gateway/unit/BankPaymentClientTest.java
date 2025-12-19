@@ -1,6 +1,7 @@
 package com.checkout.payment.gateway.unit;
 
 import com.checkout.payment.gateway.client.BankPaymentClient;
+import com.checkout.payment.gateway.exception.BankResponseException;
 import com.checkout.payment.gateway.model.BankPostPaymentResponse;
 import com.checkout.payment.gateway.model.PostPaymentRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,16 +9,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServiceUnavailable;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @SpringBootTest
@@ -52,13 +51,14 @@ class BankPaymentClientMockServerTest {
 
   @Test
   void shouldHandleSimulator503() {
+
     mockServer.expect(requestTo("http://localhost:8080/payments"))
-        .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+        .andRespond(withServiceUnavailable());
 
     PostPaymentRequest request = new PostPaymentRequest();
     request.setCardNumber("1234567890");
 
-    assertThrows(HttpServerErrorException.ServiceUnavailable.class,
+    assertThrows(BankResponseException.class,
         () -> client.processPayment(request));
   }
 }

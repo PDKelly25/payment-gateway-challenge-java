@@ -1,6 +1,8 @@
 package com.checkout.payment.gateway.integration;
 
 import com.checkout.payment.gateway.controller.PaymentGatewayController;
+import com.checkout.payment.gateway.enums.ISOCurrencyCode;
+import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.model.PostPaymentRequest;
 import com.checkout.payment.gateway.model.PostPaymentResponse;
 import com.checkout.payment.gateway.service.PaymentGatewayService;
@@ -34,13 +36,23 @@ class PaymentGatewayControllerIntegrationTest {
     PostPaymentResponse response = new PostPaymentResponse();
     response.setId(id);
     response.setAmount(100);
+    response.setCurrency(ISOCurrencyCode.USD);
+    response.setExpiryMonth(1);
+    response.setExpiryYear(2030);
+    response.setCardNumberLastFour("0291");
+    response.setStatus(PaymentStatus.AUTHORIZED);
 
     Mockito.when(paymentGatewayService.getPaymentById(eq(id))).thenReturn(response);
 
     mockMvc.perform(get("/api/v1/payments/{id}", id))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(id.toString()))
-        .andExpect(jsonPath("$.amount").value(100));
+        .andExpect(jsonPath("$.amount").value(100))
+        .andExpect(jsonPath("$.currency").value("USD"))
+        .andExpect(jsonPath("$.expiry_month").value(1))
+        .andExpect(jsonPath("$.expiry_year").value(2030))
+        .andExpect(jsonPath("$.card_number_last_four").value("0291"))
+        .andExpect(jsonPath("$.status").value("Authorized"));
   }
 
   @Test

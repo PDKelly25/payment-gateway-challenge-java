@@ -3,6 +3,7 @@ package com.checkout.payment.gateway.unit;
 import com.checkout.payment.gateway.client.BankPaymentClient;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.EventProcessingException;
+import com.checkout.payment.gateway.mapper.PaymentMapper;
 import com.checkout.payment.gateway.model.BankPostPaymentResponse;
 import com.checkout.payment.gateway.model.PostPaymentRequest;
 import com.checkout.payment.gateway.model.PostPaymentResponse;
@@ -23,12 +24,14 @@ class PaymentGatewayServiceTest {
   private PaymentsRepository paymentsRepository;
   private BankPaymentClient bankPaymentClient;
   private PaymentGatewayService service;
+  private PaymentMapper paymentMapper;
 
   @BeforeEach
   void setUp() {
     paymentsRepository = mock(PaymentsRepository.class);
     bankPaymentClient = mock(BankPaymentClient.class);
-    service = new PaymentGatewayService(paymentsRepository, bankPaymentClient);
+    paymentMapper = mock(PaymentMapper.class);
+    service = new PaymentGatewayService(paymentsRepository, bankPaymentClient, paymentMapper);
   }
 
   @Test
@@ -53,7 +56,7 @@ class PaymentGatewayServiceTest {
   }
 
   @Test
-  void shouldProcessAuthorizedPaymentAndStoreIt() {
+  void shouldProcessSuccessfulPaymentAndStoreIt() {
     PostPaymentRequest request = new PostPaymentRequest();
     request.setCardNumber("12345678901234");
     request.setExpiryMonth(12);
@@ -61,46 +64,23 @@ class PaymentGatewayServiceTest {
     request.setAmount(100);
 
     BankPostPaymentResponse bankResponse = new BankPostPaymentResponse();
-    bankResponse.setAuthorized(true);
+    bankResponse.setAuthorized(false);
+
+    PostPaymentResponse paymentResponse = new PostPaymentResponse();
+    paymentResponse.setId(UUID.randomUUID());
+    paymentResponse.setStatus(PaymentStatus.DECLINED);
+    paymentResponse.setCardNumberLastFour("1234");
 
     when(bankPaymentClient.processPayment(request)).thenReturn(bankResponse);
-
+    when(paymentMapper.toPaymentResponse(request, bankResponse)).thenReturn(paymentResponse
+    );
     PostPaymentResponse response = service.processPayment(request);
 
-    assertEquals(PaymentStatus.AUTHORIZED, response.getStatus());
+    assertEquals(PaymentStatus.DECLINED, response.getStatus());
     assertEquals("1234", response.getCardNumberLastFour());
 
     ArgumentCaptor<PostPaymentResponse> captor = ArgumentCaptor.forClass(PostPaymentResponse.class);
     verify(paymentsRepository).add(captor.capture());
     assertEquals(response.getId(), captor.getValue().getId());
-  }
-
-  @Test
-  void shouldThrowExceptionWhenPaymentDeclined() {
-    PostPaymentRequest request = new PostPaymentRequest();
-    request.setCardNumber("12345678901234");
-
-    BankPostPaymentResponse bankResponse = new BankPostPaymentResponse();
-    bankResponse.setAuthorized(false);
-
-    when(bankPaymentClient.processPayment(request)).thenReturn(bankResponse);
-
-    assertThrows(EventProcessingException.class, () -> service.processPayment(request));
-    verify(paymentsRepository, never()).add(any());
-  }
-
-  @Test
-  void shouldExtractLastFourDigitsCorrectly() {
-    PostPaymentRequest request = new PostPaymentRequest();
-    request.setCardNumber("9876543210000");
-
-    BankPostPaymentResponse bankResponse = new BankPostPaymentResponse();
-    bankResponse.setAuthorized(true);
-
-    when(bankPaymentClient.processPayment(request)).thenReturn(bankResponse);
-
-    PostPaymentResponse response = service.processPayment(request);
-
-    assertEquals("0000", response.getCardNumberLastFour());
   }
 }

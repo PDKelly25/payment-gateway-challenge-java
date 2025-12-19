@@ -35,6 +35,14 @@
 
    - [x] **Amount** submitted in payment request
 
+3. Exception Handling - The following exceptions should be handled for the listed components:
+   1. Service:
+      - [x] Validation exceptions (corresponding to validation rules listed in 1) should return an Error Response with Payment Status REJECTED (400 Bad Request)
+      - [x] 404 Not Found Error should be returned when the Repository does not contain the (GET) requested Payment Id. 
+   2. Bank Simulator:
+      - [x] 503 Service Unavailable Error (when the Card Number field value ends in 0)
+
+
 ### Payment Gateway Design considerations:
 RESTful application utilising Spring Boot Framework -- version 3.1.5
 
